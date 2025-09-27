@@ -99,6 +99,15 @@ class NeuralNetwork {
     this.outputLayer = new Neuron(2, learningRate);
   }
 
+  feedWithWeights(hiddenLayerWeights, outputLayerWeights) {
+    console.log("Pesos da camada oculta:", hiddenLayerWeights);
+    console.log("Pesos da camada de saída:", outputLayerWeights);
+    this.hiddenLayer.forEach((neuron, index) => {
+      neuron.weights = hiddenLayerWeights[index];
+    });
+    this.outputLayer.weights = outputLayerWeights;
+  }
+
   // Forward pass - propagação para frente
   forward(input) {
     // Calcular saídas da camada oculta
@@ -155,18 +164,20 @@ class NeuralNetwork {
         totalError += Math.abs(error);
       });
 
-      // Log de progresso a cada 100 épocas
-      if (epoch % 100 === 0) {
-        console.log(
-          `Época ${epoch}, Erro médio: ${(
-            totalError / trainingData.length
-          ).toFixed(4)}`
-        );
-      }
+      // // Log de progresso a cada 100 épocas
+      // if (epoch % 10_000 === 0) {
+      //   console.log(
+      //     `Época ${epoch}, Erro médio: ${(
+      //       totalError / trainingData.length
+      //     ).toFixed(4)}`
+      //   );
+      // }
 
       // Parar se convergiu
       if (totalError < 0.01) {
-        console.log(`Convergência atingida na época ${epoch}`);
+        console.log(
+          `Convergência atingida na época ${epoch} com erro ${totalError}`
+        );
         break;
       }
     }
@@ -195,37 +206,53 @@ class NeuralNetwork {
 
 // Dados de treinamento para função de igualdade (XNOR)
 const trainingData = [
-  { input: [0, 0], target: 1 }, // 0 == 0 -> 1
-  { input: [0, 1], target: 0 }, // 0 != 1 -> 0
+  { input: [0, 0], target: 0 }, // 0 == 0 -> 1
+  { input: [0, 5], target: 1 }, // 0 != 1 -> 0
   { input: [1, 0], target: 0 }, // 1 != 0 -> 0
-  { input: [1, 1], target: 1 }, // 1 == 1 -> 1
+  { input: [5, 1], target: 0 }, // 1 == 1 -> 1
 ];
 
 // Dados de teste adicionais
 const testData = [
-  { input: [0, 0], target: 1 },
-  { input: [0, 1], target: 0 },
-  { input: [1, 0], target: 0 },
-  { input: [1, 1], target: 1 },
-  { input: [0.5, 0.5], target: 1 }, // Teste com decimais
-  { input: [0.3, 0.7], target: 0 },
+  { input: [0, 0], target: 0 },
+  { input: [0, 1], target: 1 },
+  { input: [1, 0], target: 1 },
+  { input: [1, 1], target: 0 },
+  { input: [0.5, 0.5], target: 0 }, // Teste com decimais
+  { input: [0.3, 0.7], target: 1 },
 ];
 
 // Função principal
-const main = () => {
+const trainModel = () => {
   console.log("=== Rede Neural para Detecção de Igualdade ===\n");
 
   // Criar e treinar a rede
   const network = new NeuralNetwork(0.8);
-  network.train(trainingData, 2000);
+  network.train(trainingData, 200_000);
 
   // Testar a rede
   network.test(testData);
 
-  console.log("\n=== Comparação com Perceptron Simples ===");
-  console.log("Um único perceptron não consegue resolver este problema!");
-  console.log("A rede neural com múltiplas camadas resolve com sucesso.");
+  console.log("\n=== Alimentando a rede com pesos ===");
+  network.feedWithWeights(
+    network.hiddenLayer.map((neuron) => neuron.weights),
+    network.outputLayer.weights
+  );
+  network.test(testData);
 };
 
-// Executar o programa
-main();
+const modelTrained = () => {
+  const network = new NeuralNetwork(0.8);
+  network.feedWithWeights(
+    [
+      [-6.827663800118968, -6.827208942014659],
+      [8.445954624004425, 8.443841207820757],
+    ],
+    [[12.87504120599525, 12.817182918831936]]
+  );
+
+  network.test(testData);
+};
+
+// trainModel();
+modelTrained();
